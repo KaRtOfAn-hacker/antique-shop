@@ -13,7 +13,7 @@ export const useCart = () => useContext(CartContext);
 
 // --- API ---
 const api = axios.create({
-  baseURL: 'http://localhost:5001/api'
+  baseURL: '/api'
 });
 
 api.interceptors.request.use(config => {

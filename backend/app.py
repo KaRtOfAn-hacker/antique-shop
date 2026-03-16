@@ -12,9 +12,9 @@ CORS(app)
 
 # Database Configuration
 basedir = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, '../prisma/dev.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///dev.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'antique_secret_key_123'
+app.config['SECRET_KEY'] = 'antique_shop_super_secret_long_key_32_chars_minimum'
 
 db = SQLAlchemy(app)
 
@@ -186,15 +186,30 @@ def update_request(current_user, id):
 @app.route('/api/orders', methods=['POST'])
 @token_required
 def create_order(current_user):
-    data = request.get_json()
-    new_order = Order(total=data['total'], user_id=current_user.id)
-    db.session.add(new_order)
-    db.session.commit()
-    for item in data['items']:
-        oi = OrderItem(order_id=new_order.id, product_id=item['id'], price=item['price'])
-        db.session.add(oi)
-    db.session.commit()
-    return jsonify({'id': new_order.id})
+    try:
+        data = request.get_json()
+        print(f"DEBUG: Creating order for user {current_user.id}, total: {data.get('total')}")
+        
+        new_order = Order(total=float(data['total']), user_id=current_user.id)
+        db.session.add(new_order)
+        db.session.flush() # Отримуємо ID замовлення без повного коміту
+        
+        for item in data['items']:
+            # Перевіряємо чи існує товар в новій базі
+            product = Product.query.get(item['id'])
+            if not product:
+                return jsonify({'error': f"Товар з ID {item['id']} не знайдено. Очистіть кошик і додайте його заново."}), 400
+                
+            oi = OrderItem(order_id=new_order.id, product_id=product.id, price=float(item['price']))
+            db.session.add(oi)
+            
+        db.session.commit()
+        print(f"DEBUG: Order {new_order.id} created successfully")
+        return jsonify({'id': new_order.id})
+    except Exception as e:
+        db.session.rollback()
+        print(f"ERROR creating order: {str(e)}")
+        return jsonify({'error': f"Помилка на сервері: {str(e)}"}), 500
 
 @app.route('/api/orders', methods=['GET'])
 @token_required
@@ -243,4 +258,4 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
         seed()
-    app.run(port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)

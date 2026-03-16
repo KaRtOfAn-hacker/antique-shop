@@ -1,0 +1,21 @@
+services:
+  backend:
+    build: ./backend
+    container_name: antique-backend
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./backend/dev.db:/app/dev.db
+    environment:
+      - FLASK_ENV=production
+      - PYTHONUNBUFFERED=1
+
+  frontend:
+    build: ./frontend
+    container_name: antique-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=http://localhost:5001/api
