@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-antique-cream text-antique-dark font-sans;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+.antique-card {
+  @apply bg-white/50 backdrop-blur-sm border border-antique-brown/10 rounded-lg shadow-sm hover:shadow-md transition-shadow;
+}
+
+.btn-primary {
+  @apply px-4 py-2 bg-antique-brown text-antique-cream rounded-md hover:bg-antique-dark transition-colors;
+}
+
+.btn-outline {
+  @apply px-4 py-2 border border-antique-brown text-antique-brown rounded-md hover:bg-antique-brown hover:text-antique-cream transition-colors;
+}
+
+.input-field {
+  @apply w-full px-3 py-2 border border-antique-brown/20 rounded-md focus:outline-none focus:ring-1 focus:ring-antique-gold bg-white/70;
+}
