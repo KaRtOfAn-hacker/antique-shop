@@ -17,7 +17,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('access_token');
   if (token) config.headers.authorization = `Bearer ${token}`;
   return config;
 });
@@ -885,7 +885,7 @@ const Cart = () => {
       return;
     }
     try {
-      await api.post('/orders', { items: cart, total });
+      await api.post('/orders/', { items: cart, total });
       alert('Замовлення успішно оформлено! Ми зв’яжемося з вами найближчим часом.');
       clearCart();
       navigate('/requests'); // Redirect to my orders/requests
@@ -949,22 +949,23 @@ export default function App() {
 
   const login = async (email, password) => {
     const res = await api.post('/login', { email, password });
-    localStorage.setItem('token', res.data.token);
+    localStorage.setItem('access_token', res.data.access);
+    localStorage.setItem('refresh_token', res.data.refresh);
     localStorage.setItem('user', JSON.stringify(res.data.user));
     setUser(res.data.user);
+    api.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
   };
 
-  const register = async (data) => {
-    const res = await api.post('/register', data);
-    localStorage.setItem('token', res.data.token);
-    localStorage.setItem('user', JSON.stringify(res.data.user));
-    setUser(res.data.user);
+  const register = (data) => {
+    return api.post('/register', data);
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     localStorage.removeItem('user');
     setUser(null);
+    delete api.defaults.headers.common['Authorization'];
   };
 
   const addToCart = (p) => setCart([...cart, p]);
